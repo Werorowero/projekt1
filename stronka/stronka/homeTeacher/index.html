@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            background: #ffffff;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-width: 400px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #logoutButton {
+            top: 20px;
+            left: 20px;
+            background-color: #FF0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #logoutButton:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Teacher Home</h1>
+    <section>
+        <h2>Manage Students</h2>
+        <form id="addStudentForm">
+            <input type="number" id="studentId" placeholder="Student ID" required />
+            <input type="text" id="className" placeholder="Class Name" required />
+            <button type="button" onclick="addStudentToClass()">Add Student to Class</button>
+        </form>
+
+        <form id="createClassForm">
+            <input type="text" id="newClassName" placeholder="Class Name" required />
+            <button type="button" onclick="createClass()">Create Class</button>
+        </form>
+
+        <form id="createSubjectForm">
+            <input type="text" id="subjectName" placeholder="Subject Name" required />
+            <input type="number" id="classId" placeholder="Class ID" required />
+            <button type="button" onclick="createSubject()">Create Subject</button>
+        </form>
+
+        <form id="createLessonForm">
+            <input type="text" id="lessonTopic" placeholder="Lesson Topic" required />
+            <input type="number" id="subjectId" placeholder="Subject ID" required />
+            <button type="button" onclick="createLesson()">Create Lesson</button>
+        </form>
+
+        <form id="assignTeacherForm">
+            <input type="number" id="teacherId" placeholder="Teacher ID" required />
+            <input type="number" id="classIdForAssign" placeholder="Class ID" required />
+            <button type="button" onclick="assignTeacherToClass()">Assign Teacher to Class</button>
+        </form>
+    </section>
+    <button id="logoutButton" onclick="logout()">Logout</button>
+
+    <script>
+        const apiUrl = 'http://localhost:8080/teacher'; // Replace with your backend URL
+
+        function logout() {
+            document.cookie.split(";").forEach(cookie => {
+                const [name] = cookie.split("=");
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            });
+            window.location.href = "/";
+        }
+
+        function getAuthToken() {
+            const name = "authToken=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i].trim();
+                if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+            }
+            return "";
+        }
+
+        async function addStudentToClass() {
+            const studentId = document.getElementById('studentId').value;
+            const className = document.getElementById('className').value;
+            const token = getAuthToken();
+
+            const response = await fetch(`${apiUrl}/add/student?studentId=${studentId}&className=${className}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const result = await response.json();
+            alert(response.ok ? 'Student added to class successfully!' : 'Error: ' + result.message);
+        }
+
+        async function createClass() {
+            const name = document.getElementById('newClassName').value;
+            const token = getAuthToken();
+
+            const response = await fetch(`${apiUrl}/add/class?name=${name}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const result = await response.json();
+            alert(response.ok ? 'Class created successfully!' : 'Error: ' + result.message);
+        }
+
+        async function createSubject() {
+            const subjectName = document.getElementById('subjectName').value;
+            const classId = document.getElementById('classId').value;
+            const token = getAuthToken();
+
+            const response = await fetch(`${apiUrl}/add/subject?classId=${classId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: subjectName })
+            });
+
+            const result = await response.json();
+            alert(response.ok ? 'Subject created successfully!' : 'Error: ' + result.message);
+        }
+
+        async function createLesson() {
+            const topic = document.getElementById('lessonTopic').value;
+            const subjectId = document.getElementById('subjectId').value;
+            const token = getAuthToken();
+
+            const response = await fetch(`${apiUrl}/add/lesson?topic=${topic}&subjectId=${subjectId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const result = await response.json();
+            alert(response.ok ? 'Lesson created successfully!' : 'Error: ' + result.message);
+        }
+
+        async function assignTeacherToClass() {
+            const teacherId = document.getElementById('teacherId').value;
+            const classId = document.getElementById('classIdForAssign').value;
+            const token = getAuthToken();
+
+            const response = await fetch(`${apiUrl}/assignTeacherToClass?teacherId=${teacherId}&classId=${classId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const result = await response.json();
+            alert(response.ok ? 'Teacher assigned to class successfully!' : 'Error: ' + result.message);
+        }
+    </script>
+</body>
+</html>

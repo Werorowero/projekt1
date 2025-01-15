@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            background: #ffffff;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-width: 400px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #classInfo {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-width: 600px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .class-detail {
+            margin-bottom: 10px;
+        }
+        #logoutButton {
+            top: 20px;
+            left: 20px;
+            background-color: #FF0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #logoutButton:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Student Panel</h1>
+
+    <form id="classForm">
+        <input type="number" id="classId" placeholder="Class ID" required />
+        <button type="button" onclick="getClassInformation()">Get Class Information</button>
+    </form>
+
+    <div id="classInfo"></div>
+
+    <button id="logoutButton" onclick="logout()">Logout</button>
+    <script>
+        const apiUrl = 'http://localhost:8080/student/class'; // Replace with your backend URL
+
+        // Helper function to get token from cookies
+        function getAuthToken() {
+            const name = "authToken=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i].trim();
+                if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+            }
+            return "";
+        }
+
+        async function getClassInformation() {
+            const classId = document.getElementById('classId').value;
+            const token = getAuthToken();
+
+            const response = await fetch(`${apiUrl}?classId=${classId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const classInfo = await response.json();
+
+            if (response.ok) {
+                displayClassInfo(classInfo);
+            } else {
+                document.getElementById('classInfo').innerHTML = '<p>Error: Unable to retrieve class information.</p>';
+            }
+        }
+
+        function displayClassInfo(schoolClass) {
+            const classInfoContainer = document.getElementById('classInfo');
+
+            classInfoContainer.innerHTML = `
+                <h3>${schoolClass.name}</h3>
+                <p><strong>Class ID:</strong> ${schoolClass.id}</p>
+                <p><strong>Class Tutor:</strong> ${schoolClass.teacher ? `${schoolClass.teacher.firstName} ${schoolClass.teacher.lastName}` : 'No tutor assigned'}</p>
+                <p><strong>Students:</strong> ${schoolClass.students.length ? schoolClass.students.map(student => `${student.firstName} ${student.lastName}`).join(', ') : 'No students'}</p>
+                <p><strong>Subjects:</strong> ${schoolClass.subjects.length ? schoolClass.subjects.map(subject => subject.name).join(', ') : 'No subjects'}</p>
+            `;
+        }
+        function logout() {
+            document.cookie.split(";").forEach(cookie => {
+                const [name] = cookie.split("=");
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            });
+            window.location.href = "/";
+        }
+    </script>
+</body>
+</html>
